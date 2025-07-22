@@ -1,17 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+加密货币价格告警系统入口点（简化导入版本）
+
+此文件展示了如何使用重导出的模块来简化main.py中的导入语句
+"""
+
 import os
 import sys
 import traceback
 import argparse
 
-from src.utils.config_loader import ConfigLoader
-from src.utils.database import Database
-from src.utils.logger import get_logger
-from src.core.alert_engine import AlertEngine
-from src.tasks.backtest_task import run_backtest_task
-from src.indicators import load_indicators
+# 确保当前目录在系统路径中，以便能够导入src包
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# 使用重导出的模块简化导入
+from src import (
+    ConfigLoader, Database, get_logger,
+    AlertEngine, run_backtest_task, load_indicators,
+    FeishuNotifier
+)
 
 def setup_basic_logging():
     """设置基本的日志记录，在配置加载前使用"""
@@ -40,9 +49,6 @@ def main():
     parser.add_argument('--backtest', action='store_true', help='执行回测任务')
     args = parser.parse_args()
     try:
-        # 确保ConfigLoader已正确导入
-        from src.utils.config_loader import ConfigLoader
-        
         # 获取配置目录路径
         config_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'config')
         
@@ -115,11 +121,8 @@ def main():
         
         # 尝试发送崩溃通知
         try:
-            # 确保即使在配置加载失败的情况下也能发送崩溃通知
-            from src.notifiers.feishu_notifier import FeishuNotifier
-            from datetime import datetime
-            
             # 获取当前时间戳
+            from datetime import datetime
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             # 准备详细的错误信息
@@ -135,9 +138,6 @@ def main():
                     webhook_url = alert_config.get('feishu_webhook')
                 else:
                     # 配置加载失败，尝试直接从配置文件读取webhook
-                    # 确保ConfigLoader已定义
-                    if 'ConfigLoader' not in locals() and 'ConfigLoader' not in globals():
-                        from src.utils.config_loader import ConfigLoader
                     config_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'config')
                     config_loader = ConfigLoader(config_dir)
                     config_loader.load_alert_config()

@@ -1,0 +1,32 @@
+# 本地配置文件示例 - 复制此文件为config.local.ini并填入你的实际配置
+# 注意：config.local.ini文件已在.gitignore中设置为忽略，不会被提交到GitHub
+
+[api_keys]
+# 币安API密钥（如果需要使用币安API获取更多数据）
+binance_api_key = YOUR_BINANCE_API_KEY_HERE
+binance_api_secret = YOUR_BINANCE_API_SECRET_HERE
+
+[webhooks]
+# 飞书机器人webhook地址
+feishu_webhook = https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-token
+
+# 其他通知渠道webhook（如需使用）
+telegram_bot_token = YOUR_TELEGRAM_BOT_TOKEN
+telegram_chat_id = YOUR_TELEGRAM_CHAT_ID
+
+[database]
+# 本地数据库路径（如需覆盖默认路径）
+db_path = ./src/data/crypto_alert.db
+
+[logging]
+# 本地日志配置（如需覆盖默认配置）
+log_path = ./src/logs/crypto_alert.log
+log_level = DEBUG  # 本地开发时可设为DEBUG以获取更详细日志
+
+[development]
+# 开发环境特定配置
+debug_mode = true
+test_mode = false
+
+# 测试用交易对（仅在测试模式下使用）
+test_symbols = BTCUSDT,ETHUSDT
