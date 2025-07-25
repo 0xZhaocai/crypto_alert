@@ -1,0 +1,82 @@
+{
+  "BTCUSDT": {
+    "long": false,
+    "short": false,
+    "last_long_score": 6,
+    "last_short_score": 7,
+    "error_count": 0,
+    "signal_disappeared_time": null,
+    "last_price": 0,
+    "last_rsi": 0
+  },
+  "ETHUSDT": {
+    "long": false,
+    "short": false,
+    "last_long_score": 6,
+    "last_short_score": 0,
+    "error_count": 0,
+    "signal_disappeared_time": null,
+    "last_price": 0,
+    "last_rsi": 0
+  },
+  "SOLUSDT": {
+    "long": false,
+    "short": false,
+    "last_long_score": 6,
+    "last_short_score": 7,
+    "error_count": 0,
+    "signal_disappeared_time": null,
+    "last_price": 0,
+    "last_rsi": 0
+  },
+  "XRPUSDT": {
+    "long": false,
+    "short": false,
+    "last_long_score": 6,
+    "last_short_score": 0,
+    "error_count": 0,
+    "signal_disappeared_time": null,
+    "last_price": 0,
+    "last_rsi": 0
+  },
+  "AVAXUSDT": {
+    "long": false,
+    "short": false,
+    "last_long_score": 7,
+    "last_short_score": 7,
+    "error_count": 0,
+    "signal_disappeared_time": null,
+    "last_price": 0,
+    "last_rsi": 0
+  },
+  "DOGEUSDT": {
+    "long": false,
+    "short": false,
+    "last_long_score": 0,
+    "last_short_score": 0,
+    "error_count": 1,
+    "signal_disappeared_time": null,
+    "last_price": 0,
+    "last_rsi": 0
+  },
+  "WIFUSDT": {
+    "long": false,
+    "short": false,
+    "last_long_score": 0,
+    "last_short_score": 0,
+    "error_count": 0,
+    "signal_disappeared_time": null,
+    "last_price": 0,
+    "last_rsi": 0
+  },
+  "BNBUSDT": {
+    "long": false,
+    "short": false,
+    "last_long_score": 8,
+    "last_short_score": 0,
+    "error_count": 0,
+    "signal_disappeared_time": null,
+    "last_price": 0,
+    "last_rsi": 0
+  }
+}
