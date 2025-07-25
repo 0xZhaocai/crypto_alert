@@ -16,7 +16,7 @@ class MessageFormatter:
         self.templates_dict = templates_dict or {}
         self.logger = logging.getLogger(__name__)
     
-    def format_alert_text(self, symbol: str, name: str, direction: str, score: int, price: float, time: str, pattern: str = "") -> str:
+    def format_alert_text(self, symbol: str, name: str, direction: str, score: int, price: float, time: str, pattern: str = "", max_possible_score: int = 12) -> str:
         """格式化普通文本提醒消息
         
         Args:
@@ -27,6 +27,7 @@ class MessageFormatter:
             price: 当前价格
             time: 当前时间
             pattern: 形态识别结果，可选
+            max_possible_score: 信号评分的最大可能分数，默认为12
             
         Returns:
             格式化后的文本消息
@@ -39,10 +40,11 @@ class MessageFormatter:
             score=score,
             price=price,
             time=time,
-            pattern=pattern
+            pattern=pattern,
+            max_possible_score=max_possible_score
         )
     
-    def format_alert_rich_text(self, symbol: str, name: str, direction: str, score: int, price: float, time: str, pattern: str = "") -> Dict[str, Any]:
+    def format_alert_rich_text(self, symbol: str, name: str, direction: str, score: int, price: float, time: str, pattern: str = "", max_possible_score: int = 12) -> Dict[str, Any]:
         """格式化富文本提醒消息
         
         Args:
@@ -53,6 +55,7 @@ class MessageFormatter:
             price: 当前价格
             time: 当前时间
             pattern: 形态识别结果，可选
+            max_possible_score: 信号评分的最大可能分数，默认为12
             
         Returns:
             格式化后的富文本消息字典
@@ -65,7 +68,8 @@ class MessageFormatter:
             score=score,
             price=price,
             time=time,
-            pattern=pattern
+            pattern=pattern,
+            max_possible_score=max_possible_score
         )
     
     def format_error_text(self, symbol: str, error_count: int, error_message: str) -> str:

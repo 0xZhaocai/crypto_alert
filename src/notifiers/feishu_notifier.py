@@ -8,17 +8,19 @@ from src.notifiers.message_formatter import MessageFormatter
 class FeishuNotifier:
     """飞书通知器，用于发送飞书消息"""
     
-    def __init__(self, webhook_url: str = None, templates: Dict[str, str] = None, logger=None):
+    def __init__(self, webhook_url: str = None, templates: Dict[str, str] = None, logger=None, max_possible_score: int = 10):
         """初始化飞书通知器
         
         Args:
             webhook_url: 飞书机器人webhook地址，如果为None或空字符串则无法发送消息
             templates: 消息模板字典，已废弃，保留参数仅为向后兼容
             logger: 日志记录器，如果为None则使用全局日志记录器
+            max_possible_score: 信号评分的最大可能分数
         """
         self.webhook_url = webhook_url
         self.formatter = MessageFormatter()
         self.logger = logger if logger else get_logger()
+        self.max_possible_score = max_possible_score
         
         # 检查webhook_url是否有效
         if not self.webhook_url:
@@ -56,6 +58,7 @@ class FeishuNotifier:
                 name=name,
                 direction=direction,
                 score=score,
+                max_possible_score=self.max_possible_score,
                 price=metrics['price'],
                 time=time_str,
                 pattern=pattern
@@ -69,13 +72,14 @@ class FeishuNotifier:
                 score=score,
                 price=metrics['price'],
                 time=time_str,
-                pattern=pattern
+                pattern=pattern,
+                max_possible_score=self.max_possible_score
             )
             
             # 构建简洁的日志内容
-            log_content = f"{name} | 🎯 信号：{direction} {score}/10 | 💰 价格：{metrics['price']:.4f} | 🕒 时间：{time_str} | https://binance.com/zh-CN/futures/{symbol}"
+            log_content = f"{name} | 🎯 信号：{direction} {score}/{self.max_possible_score} | 💰 价格：{metrics['price']:.4f} | 🕒 时间：{time_str} | https://binance.com/zh-CN/futures/{symbol}"
             
-            self.logger.info(f"[{symbol}] 发送提醒：【{direction}】分数: {score}")
+            self.logger.info(f"[{symbol}] 发送提醒：【{direction}】分数: {score}/{self.max_possible_score}")
             # 使用debug级别记录消息内容，避免重复打印
             self.logger.debug(f"[{symbol}] 发送内容: {log_content}")
             

@@ -27,7 +27,7 @@ class AlertEngine:
         # 初始化组件
         self.data_fetcher = DataFetcher()
         self.signal_evaluator = SignalEvaluator(config)
-        self.notifier = FeishuNotifier(config['feishu_webhook'])
+        self.notifier = FeishuNotifier(config['feishu_webhook'], max_possible_score=self.signal_evaluator.max_possible_score)
         
         # 初始化数据库中的交易对
         self.db.init_symbols(symbols)
@@ -59,10 +59,10 @@ class AlertEngine:
                 long_score, short_score, long_details, short_details = self.signal_evaluator.evaluate_signals(metrics)
                 
                 self.logger.info(f"[{symbol}] 当前价格: {metrics['price']:.4f}")
-                self.logger.info(f"[{symbol}] 做多得分: {long_score}/10")
+                self.logger.info(f"[{symbol}] 做多得分: {long_score}/{self.signal_evaluator.max_possible_score}")
                 for detail in long_details: 
                     self.logger.info(f"[{symbol}] 做多 - {detail}")
-                self.logger.info(f"[{symbol}] 做空得分: {short_score}/10")
+                self.logger.info(f"[{symbol}] 做空得分: {short_score}/{self.signal_evaluator.max_possible_score}")
                 for detail in short_details: 
                     self.logger.info(f"[{symbol}] 做空 - {detail}")
                 
@@ -96,7 +96,7 @@ class AlertEngine:
                     else:
                         if status.get("signal_disappeared_time"):
                             end_time = status["signal_disappeared_time"] + datetime.timedelta(minutes=self.config['cooldown_minutes'])
-                            self.logger.info(f"[{symbol}] 做多得分: {long_score}，但信号条件不满足，不发送（观察期结束: {end_time.strftime('%H:%M:%S')}）")
+                            self.logger.info(f"[{symbol}] 做多得分: {long_score}，但信号条件不满足，不发送（观察期结束: {end_time.strftime('%Y-%m-%d %H:%M:%S')}）")
                         else:
                             self.logger.info(f"[{symbol}] 做多得分: {long_score}，但信号条件不满足，不发送")
                             
@@ -136,7 +136,7 @@ class AlertEngine:
                     else:
                         if status.get("signal_disappeared_time"):
                             end_time = status["signal_disappeared_time"] + datetime.timedelta(minutes=self.config['cooldown_minutes'])
-                            self.logger.info(f"[{symbol}] 做空得分: {short_score}，但信号条件不满足，不发送（观察期结束: {end_time.strftime('%H:%M:%S')}）")
+                            self.logger.info(f"[{symbol}] 做空得分: {short_score}，但信号条件不满足，不发送（观察期结束: {end_time.strftime('%Y-%m-%d %H:%M:%S')}）")
                         else:
                             self.logger.info(f"[{symbol}] 做空得分: {short_score}，但信号条件不满足，不发送")
                             

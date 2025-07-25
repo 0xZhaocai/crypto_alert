@@ -18,7 +18,7 @@ def test_text_message_newlines():
     
     # 创建包含各种换行符表示的测试模板
     templates = {
-        'alert': '📊 趋势{direction}\n🎯 信号：{score}/12\n💰 价格：{price:.4f}\n🕒 时间：{time}\n`https://binance.com/zh-CN/futures/{symbol}USDT`',
+        'alert': '📊 趋势{direction}\n🎯 信号：{score}/{max_possible_score}\n💰 价格：{price:.4f}\n🕒 时间：{time}\n`https://binance.com/zh-CN/futures/{symbol}USDT`',
         'error': '⚠️ 警告: {symbol}连续{error_count}次处理失败\n请检查。\n最后错误: {error_message}',
         'crash': '🚨 严重错误: 监控程序异常退出\n时间: {timestamp}\n错误信息: \n{error_message}'
     }
@@ -57,7 +57,7 @@ def test_text_message_newlines():
     
     # 测试模板中使用单引号包围的换行符
     logger.info("测试单引号包围的换行符...")
-    templates['alert'] = '📊 趋势{direction} \'\\n\' 🎯 信号：{score}/12 \'\\n\' 💰 价格：{price:.4f}'
+    templates['alert'] = '📊 趋势{direction} \'\\n\' 🎯 信号：{score}/{max_possible_score} \'\\n\' 💰 价格：{price:.4f}'
     formatter = MessageFormatter(templates)
     alert_text = formatter.format_alert_text(
         symbol='btcusdt',

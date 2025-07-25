@@ -126,6 +126,9 @@ class DataFetcher:
             # 保持向后兼容
             result["zigzag_points"] = zigzag_result["zigzag_points"]
             result["zigzag_values"] = zigzag_result["zigzag_values"]
+            # 添加ZigZag配置参数到结果中
+            result["zigzag_deviation"] = zigzag_result["zigzag_deviation"]
+            result["zigzag_depth"] = zigzag_result["zigzag_depth"]
             
             return result
             

@@ -67,13 +67,27 @@ class ConfigLoader:
             }
         
         # 加载指标配置
+        self.alert_config['indicators'] = {}
+        self.alert_config['indicators']['rsi_min'] = config.getint('indicators', 'rsi_min')
+        self.alert_config['indicators']['rsi_max'] = config.getint('indicators', 'rsi_max')
+        self.alert_config['indicators']['price_ema_gap_ratio'] = config.getfloat('indicators', 'price_ema_gap_ratio')
+        self.alert_config['indicators']['atr_ratio'] = config.getfloat('indicators', 'atr_ratio')
+        self.alert_config['indicators']['volume_ratio'] = config.getfloat('indicators', 'volume_ratio')
+        
+        # 加载ZigZag指标配置
+        self.alert_config['indicators']['zigzag_deviation'] = config.getfloat('indicators', 'zigzag_deviation', fallback=5.0)
+        self.alert_config['indicators']['zigzag_depth'] = config.getint('indicators', 'zigzag_depth', fallback=10)
+        
+        # 为了向后兼容，保留原来的配置结构
         self.alert_config['rsi_range'] = {
-            'min': config.getint('indicators', 'rsi_min'),
-            'max': config.getint('indicators', 'rsi_max')
+            'min': self.alert_config['indicators']['rsi_min'],
+            'max': self.alert_config['indicators']['rsi_max']
         }
-        self.alert_config['price_ema_gap_ratio'] = config.getfloat('indicators', 'price_ema_gap_ratio')
-        self.alert_config['atr_ratio'] = config.getfloat('indicators', 'atr_ratio')
-        self.alert_config['volume_ratio'] = config.getfloat('indicators', 'volume_ratio')
+        self.alert_config['price_ema_gap_ratio'] = self.alert_config['indicators']['price_ema_gap_ratio']
+        self.alert_config['atr_ratio'] = self.alert_config['indicators']['atr_ratio']
+        self.alert_config['volume_ratio'] = self.alert_config['indicators']['volume_ratio']
+        self.alert_config['zigzag_deviation'] = self.alert_config['indicators']['zigzag_deviation']
+        self.alert_config['zigzag_depth'] = self.alert_config['indicators']['zigzag_depth']
         
         # 加载阈值配置
         self.alert_config['price_change_threshold'] = config.getfloat('thresholds', 'price_change_threshold')

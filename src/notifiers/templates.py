@@ -5,7 +5,7 @@ from typing import Dict, Any
 logger = logging.getLogger(__name__)
 
 
-def format_alert_text(symbol: str, name: str, direction: str, score: int, price: float, time: str, pattern: str = "") -> str:
+def format_alert_text(symbol: str, name: str, direction: str, score: int, price: float, time: str, pattern: str = "", max_possible_score: int = 12) -> str:
     """格式化普通文本提醒消息
     
     Args:
@@ -16,20 +16,31 @@ def format_alert_text(symbol: str, name: str, direction: str, score: int, price:
         price: 当前价格
         time: 当前时间
         pattern: 形态识别结果，可选
+        max_possible_score: 信号评分的最大可能分数，默认为12
         
     Returns:
         格式化后的文本消息
     """
+    # 确保形态和趋势方向一致
+    # 如果形态是M顶，趋势必须是空；如果形态是W底，趋势必须是多
+    display_direction = direction
+    if pattern == "M顶" and direction == "多":
+        logger.warning(f"检测到形态与趋势不一致：形态为M顶但趋势为多，已自动调整为空")
+        display_direction = "空"
+    elif pattern == "W底" and direction == "空":
+        logger.warning(f"检测到形态与趋势不一致：形态为W底但趋势为空，已自动调整为多")
+        display_direction = "多"
+    
     # 总是显示形态信息，即使是"未知"
     pattern_text = f"\n🔍 形态：{pattern}"
-#    formatted_text = f"📊 趋势：{direction}\n🎯 信号：{score}/12{pattern_text}\n💰 价格：{price:.4f}\n🕒 时间：{time}\nhttps://binance.com/zh-CN/futures/{symbol}USDT"
-    formatted_text = f"📊 趋势：{direction}\n🎯 信号：{score}/12{pattern_text}\n💰 价格：{price:.4f}\n🕒 时间：{time}"
+#    formatted_text = f"📊 趋势：{display_direction}\n🎯 信号：{score}/{max_possible_score}{pattern_text}\n💰 价格：{price:.4f}\n🕒 时间：{time}\nhttps://binance.com/zh-CN/futures/{symbol}USDT"
+    formatted_text = f"📊 趋势：{display_direction}\n🎯 信号：{score}/{max_possible_score}{pattern_text}\n💰 价格：{price:.4f}\n🕒 时间：{time}"
     
     logger.debug(f"格式化文本消息: {formatted_text}")
     return formatted_text
 
 
-def format_alert_rich_text(symbol: str, name: str, direction: str, score: int, price: float, time: str, pattern: str = "") -> Dict[str, Any]:
+def format_alert_rich_text(symbol: str, name: str, direction: str, score: int, price: float, time: str, pattern: str = "", max_possible_score: int = 12) -> Dict[str, Any]:
     """格式化富文本提醒消息
     
     Args:
@@ -40,14 +51,23 @@ def format_alert_rich_text(symbol: str, name: str, direction: str, score: int, p
         price: 当前价格
         time: 当前时间
         pattern: 形态识别结果，可选
+        max_possible_score: 信号评分的最大可能分数，默认为12
         
     Returns:
         格式化后的富文本消息字典
     """
+    # 确保形态和趋势方向一致
+    # 如果形态是M顶，趋势必须是空；如果形态是W底，趋势必须是多
+    display_direction = direction
+    if pattern == "M顶" and direction == "多":
+        display_direction = "空"
+    elif pattern == "W底" and direction == "空":
+        display_direction = "多"
+    
     # 构建富文本内容
     content = [
-        [{"tag": "text", "text": f"📊 趋势：{direction}"}],
-        [{"tag": "text", "text": f"🎯 信号：{score}/12"}]
+        [{"tag": "text", "text": f"📊 趋势：{display_direction}"}],
+        [{"tag": "text", "text": f"🎯 信号：{score}/{max_possible_score}"}]
     ]
     
     # 总是显示形态信息，即使是"未知"

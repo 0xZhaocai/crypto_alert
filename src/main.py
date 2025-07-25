@@ -141,13 +141,8 @@ def main():
                 print(f"\n--- ZigZag指标 ---")
                 print(f"趋势: {metrics['zigzag']['trend']}")
                 print(f"形态: {metrics['zigzag']['pattern']}")
-                
-                # 获取ZigZag配置参数
-                zigzag_config = alert_config.get('indicators', {}).get('zigzag', {})
-                deviation_pct = zigzag_config.get('deviation_pct', 5.0)
-                backstep = zigzag_config.get('backstep', 10)
-                print(f"偏差百分比: {metrics.get('zigzag_deviation', deviation_pct)}%")
-                print(f"极轴腿数量: {metrics.get('zigzag_depth', backstep)}")
+                print(f"偏差百分比: {metrics['zigzag_deviation']}%")
+                print(f"极轴腿数量: {metrics['zigzag_depth']}")
                 
                 # 打印指标原始数据点
                 print(f"\n--- 指标原始数据点 ---")

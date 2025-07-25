@@ -1,7 +1,11 @@
 from typing import List, Dict, Any, Tuple
 import numpy as np
+import logging
 
 from src.indicators.base_indicator import BaseIndicator
+
+# 获取日志记录器
+logger = logging.getLogger(__name__)
 
 class ZigZagIndicator(BaseIndicator):
     """ZigZag指标实现类
@@ -24,10 +28,21 @@ class ZigZagIndicator(BaseIndicator):
         super().__init__(config)
         # 从配置中读取偏差百分比，如果没有则使用默认值
         # 参考TradingView的默认值为5.0%
-        self.deviation_pct = self.get_config_value('zigzag_deviation', 5.0)
+        if config and 'indicators' in config and 'zigzag_deviation' in config['indicators']:
+            self.deviation_pct = float(config['indicators']['zigzag_deviation'])
+        elif config and 'zigzag_deviation' in config:
+            self.deviation_pct = float(config['zigzag_deviation'])
+        else:
+            self.deviation_pct = 5.0
+            
         # 从配置中读取极轴腿数量，如果没有则使用默认值
         # 参考TradingView的默认值为10
-        self.depth = self.get_config_value('zigzag_depth', 10)
+        if config and 'indicators' in config and 'zigzag_depth' in config['indicators']:
+            self.depth = int(config['indicators']['zigzag_depth'])
+        elif config and 'zigzag_depth' in config:
+            self.depth = int(config['zigzag_depth'])
+        else:
+            self.depth = 10
     
     @property
     def name(self) -> str:
@@ -87,7 +102,13 @@ class ZigZagIndicator(BaseIndicator):
         # 识别形态
         pattern = self._identify_pattern(last_values)
         
-        # 不再需要特殊处理，因为_identify_pattern方法已经能够正确识别W底形态
+        # 检查形态和趋势是否一致，如果不一致则调整趋势方向
+        if pattern == "W底" and trend == "down":
+            logger.warning(f"ZigZag指标检测到形态与趋势不一致：形态为W底但趋势为down，已自动调整趋势为up")
+            trend = "up"
+        elif pattern == "M顶" and trend == "up":
+            logger.warning(f"ZigZag指标检测到形态与趋势不一致：形态为M顶但趋势为up，已自动调整趋势为down")
+            trend = "down"
         
         return {
             "zigzag_points": last_points,
@@ -266,7 +287,9 @@ class ZigZagIndicator(BaseIndicator):
                 # 检查两个低点是否接近
                 low1 = values[0]  # 第一个低点
                 low2 = values[2]  # 第二个低点
-                if abs(low2 - low1) / low1 < similarity_threshold:
+                similarity = abs(low2 - low1) / low1
+                if similarity < similarity_threshold:
+                    logger.debug(f"识别到W底形态，两个低点相似度: {similarity:.4f} < {similarity_threshold:.4f}")
                     return "W底"
             
         # 识别W底形态: 高-低-高-低-高，且两个低点接近
@@ -283,7 +306,9 @@ class ZigZagIndicator(BaseIndicator):
                     # 检查两个低点是否接近
                     low1 = last_five[1]  # 第一个低点
                     low2 = last_five[3]  # 第二个低点
-                    if abs(low2 - low1) / low1 < similarity_threshold:
+                    similarity = abs(low2 - low1) / low1
+                    if similarity < similarity_threshold:
+                        logger.debug(f"识别到W底形态（最近5点），两个低点相似度: {similarity:.4f} < {similarity_threshold:.4f}")
                         return "W底"
         
         # 识别M顶形态: 上-下-上-下，且两个高点接近
@@ -299,7 +324,9 @@ class ZigZagIndicator(BaseIndicator):
                     # 检查两个高点是否接近
                     high1 = last_five[1]  # 第一个高点
                     high2 = last_five[3]  # 第二个高点
-                    if abs(high2 - high1) / high1 < similarity_threshold:
+                    similarity = abs(high2 - high1) / high1
+                    if similarity < similarity_threshold:
+                        logger.debug(f"识别到M顶形态，两个高点相似度: {similarity:.4f} < {similarity_threshold:.4f}")
                         return "M顶"
         
         # 也检查整个序列中是否有W底或M顶模式
@@ -309,7 +336,9 @@ class ZigZagIndicator(BaseIndicator):
                values[i+2] > values[i+3] and values[i+4] > values[i+3]:
                 low1 = values[i+1]
                 low2 = values[i+3]
-                if abs(low2 - low1) / low1 < similarity_threshold:
+                similarity = abs(low2 - low1) / low1
+                if similarity < similarity_threshold:
+                    logger.debug(f"在序列位置{i}识别到W底形态，两个低点相似度: {similarity:.4f} < {similarity_threshold:.4f}")
                     return "W底"
             
             # 检查M顶
@@ -317,7 +346,9 @@ class ZigZagIndicator(BaseIndicator):
                values[i+3] > values[i+2] and values[i+4] < values[i+3]:
                 high1 = values[i+1]
                 high2 = values[i+3]
-                if abs(high2 - high1) / high1 < similarity_threshold:
+                similarity = abs(high2 - high1) / high1
+                if similarity < similarity_threshold:
+                    logger.debug(f"在序列位置{i}识别到M顶形态，两个高点相似度: {similarity:.4f} < {similarity_threshold:.4f}")
                     return "M顶"
         
         # 识别整理形态: 价格在一个范围内波动，没有明显的趋势

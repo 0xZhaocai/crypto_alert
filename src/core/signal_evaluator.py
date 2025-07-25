@@ -157,8 +157,11 @@ class SignalEvaluator:
             zigzag_trend = metrics["zigzag"].get("trend", "neutral")
             zigzag_pattern = metrics["zigzag"].get("pattern", "")
             
+            self.logger.debug(f"ZigZag做多信号评估 - 趋势: {zigzag_trend}, 形态: {zigzag_pattern}")
+            
             # 如果是上升趋势或W底形态，加分
-            if zigzag_trend == "up" or zigzag_pattern == "W底":
+            # 确保M顶形态不会被错误地计入做多信号
+            if (zigzag_trend == "up" and zigzag_pattern != "M顶") or zigzag_pattern == "W底":
                 long_score += self.zigzag_score
                 pattern_text = f"，形态：{zigzag_pattern}" if zigzag_pattern else ""
                 long_details.append(f"ZigZag上升趋势{pattern_text}: +{self.zigzag_score}")
@@ -200,8 +203,11 @@ class SignalEvaluator:
             zigzag_trend = metrics["zigzag"].get("trend", "neutral")
             zigzag_pattern = metrics["zigzag"].get("pattern", "")
             
+            self.logger.debug(f"ZigZag做空信号评估 - 趋势: {zigzag_trend}, 形态: {zigzag_pattern}")
+            
             # 如果是下降趋势或M顶形态，加分
-            if zigzag_trend == "down" or zigzag_pattern == "M顶":
+            # 确保W底形态不会被错误地计入做空信号
+            if (zigzag_trend == "down" and zigzag_pattern != "W底") or zigzag_pattern == "M顶":
                 short_score += self.zigzag_score
                 pattern_text = f"，形态：{zigzag_pattern}" if zigzag_pattern else ""
                 short_details.append(f"ZigZag下降趋势{pattern_text}: +{self.zigzag_score}")
