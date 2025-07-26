@@ -206,7 +206,7 @@ def evaluate_signals(metrics):
     if RSI_RANGE["min"] <= metrics["rsi_5m"] <= RSI_RANGE["max"]:
         long_score += 1; long_details.append(f"RSI在区间内({metrics['rsi_5m']:.2f}): +1")
     if metrics["price_ema_gap_ratio"] < PRICE_EMA_GAP_RATIO:
-        long_score += 1; long_details.append(f"价格贴近EMA({metrics['price_ema_gap_ratio']:.3%}): +1")
+        long_score += 1; long_details.append(f"价格贴近15mEMA21({metrics['price_ema_gap_ratio']:.3%}): +1")
     if metrics["atr_ratio"] >= ATR_RATIO:
         long_score += 2; long_details.append(f"ATR放大({metrics['atr_ratio']:.2f}x): +2")
     if metrics["volume_ratio"] >= VOLUME_RATIO:
@@ -223,7 +223,7 @@ def evaluate_signals(metrics):
     
     if ema_convergence_count > 0:
         long_score += EMA_CONVERGENCE_SCORE
-        long_details.append(f"EMA靠近({ema_convergence_count}个周期): +{EMA_CONVERGENCE_SCORE}")
+        long_details.append(f"EMA9/21靠近: +{EMA_CONVERGENCE_SCORE}")
 
     # 做空信号评分
     if metrics["price"] < metrics["ema21_15m"]:
@@ -233,7 +233,7 @@ def evaluate_signals(metrics):
     if RSI_RANGE["min"] <= metrics["rsi_5m"] <= RSI_RANGE["max"]:
         short_score += 1; short_details.append(f"RSI在区间内({metrics['rsi_5m']:.2f}): +1")
     if metrics["price_ema_gap_ratio"] < PRICE_EMA_GAP_RATIO:
-        short_score += 1; short_details.append(f"价格贴近EMA({metrics['price_ema_gap_ratio']:.3%}): +1")
+        short_score += 1; short_details.append(f"价格贴近15mEMA21({metrics['price_ema_gap_ratio']:.3%}): +1")
     if metrics["atr_ratio"] >= ATR_RATIO:
         short_score += 2; short_details.append(f"ATR放大({metrics['atr_ratio']:.2f}x): +2")
     if metrics["volume_ratio"] >= VOLUME_RATIO:
@@ -242,7 +242,7 @@ def evaluate_signals(metrics):
     # EMA靠近度评分（任一周期EMA9与EMA21靠近都给分）
     if ema_convergence_count > 0:
         short_score += EMA_CONVERGENCE_SCORE
-        short_details.append(f"EMA靠近({ema_convergence_count}个周期): +{EMA_CONVERGENCE_SCORE}")
+        short_details.append(f"EMA9/21靠近: +{EMA_CONVERGENCE_SCORE}")
 
     return long_score, short_score, long_details, short_details
 
@@ -278,13 +278,20 @@ def should_send_alert(symbol, metrics, direction, score, alert_status):
 
     return True
 
-def send_feishu_msg(symbol, metrics, direction, score):
+def send_feishu_msg(symbol, metrics, direction, score, details):
     """发送格式化的飞书消息。"""
     time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    # 选择最重要的4个条件显示
+    key_conditions = details[:6]  # 取前4个条件
+    conditions_text = "\n".join([f"✅ {detail.split(': +')[0]}" for detail in key_conditions])
+    
     body = f"""{symbol}
 🎯 信号：{score}
 💰 价格：{metrics['price']:.4f} 
-🕒 时间：{time_str}"""
+🕒 时间：{time_str}
+
+{conditions_text}"""
 
     print(f"[{symbol}] 发送提醒：【{direction}】分数: {score}")
     try:
@@ -329,7 +336,7 @@ def main():
             
             if long_score >= SIGNAL_THRESHOLD:
                 if should_send_alert(symbol, metrics, "long", long_score, ALERT_STATUS[symbol]):
-                    send_feishu_msg(token["name"], metrics, "多", long_score)
+                    send_feishu_msg(token["name"], metrics, "多", long_score, long_details)
                     ALERT_STATUS[symbol].update({
                         "long": True, "short": False, "signal_disappeared_time": datetime.datetime.now(),
                         "last_price": metrics["price"], "last_rsi": metrics["rsi_5m"]
@@ -345,7 +352,7 @@ def main():
 
             elif short_score >= SIGNAL_THRESHOLD:
                 if should_send_alert(symbol, metrics, "short", short_score, ALERT_STATUS[symbol]):
-                    send_feishu_msg(token["name"], metrics, "空", short_score)
+                    send_feishu_msg(token["name"], metrics, "空", short_score, short_details)
                     ALERT_STATUS[symbol].update({
                         "short": True, "long": False, "signal_disappeared_time": datetime.datetime.now(),
                         "last_price": metrics["price"], "last_rsi": metrics["rsi_5m"]
