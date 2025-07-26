@@ -5,6 +5,7 @@ import statistics
 import random
 import os
 import json
+import sqlite3
 
 """
 加密货币价格监控与提醒工具
@@ -27,6 +28,7 @@ import json
 # --- 全局配置加载 ---
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 STATUS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "alert_status.json")
+DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "signals.db")
 
 def load_config():
     """从JSON文件加载配置。"""
@@ -83,6 +85,110 @@ def save_status(status):
             json.dump(data_to_save, f, indent=2)
     except Exception as e:
         print(f"错误: 保存状态文件 {STATUS_FILE} 失败: {e}")
+
+# --- 数据库管理函数 ---
+def init_database():
+    """初始化SQLite数据库和表结构。"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS signal_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                symbol TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                direction TEXT NOT NULL,
+                score INTEGER NOT NULL,
+                price REAL NOT NULL,
+                price_above_ema21_15m INTEGER DEFAULT 0,
+                price_above_ema21_1h INTEGER DEFAULT 0,
+                price_below_ema21_15m INTEGER DEFAULT 0,
+                price_below_ema21_1h INTEGER DEFAULT 0,
+                rsi_in_range INTEGER DEFAULT 0,
+                price_near_ema21 INTEGER DEFAULT 0,
+                atr_amplified INTEGER DEFAULT 0,
+                volume_amplified INTEGER DEFAULT 0,
+                ema_convergence INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.commit()
+        conn.close()
+        print("数据库初始化成功")
+    except Exception as e:
+        print(f"数据库初始化失败: {e}")
+
+def save_signal_record(symbol, direction, score, metrics, details):
+    """保存信号记录到数据库。"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # 解析details中的条件
+        conditions = {
+            'price_above_ema21_15m': 0,
+            'price_above_ema21_1h': 0,
+            'price_below_ema21_15m': 0,
+            'price_below_ema21_1h': 0,
+            'rsi_in_range': 0,
+            'price_near_ema21': 0,
+            'atr_amplified': 0,
+            'volume_amplified': 0,
+            'ema_convergence': 0
+        }
+        
+        for detail in details:
+            if "价格 > EMA21(15m)" in detail:
+                conditions['price_above_ema21_15m'] = 1
+            elif "价格 > EMA21(1h)" in detail:
+                conditions['price_above_ema21_1h'] = 1
+            elif "价格 < EMA21(15m)" in detail:
+                conditions['price_below_ema21_15m'] = 1
+            elif "价格 < EMA21(1h)" in detail:
+                conditions['price_below_ema21_1h'] = 1
+            elif "RSI在区间内" in detail:
+                conditions['rsi_in_range'] = 1
+            elif "价格贴近15mEMA21" in detail:
+                conditions['price_near_ema21'] = 1
+            elif "ATR放大" in detail:
+                conditions['atr_amplified'] = 1
+            elif "成交量放大" in detail:
+                conditions['volume_amplified'] = 1
+            elif "EMA9/21靠近" in detail:
+                conditions['ema_convergence'] = 1
+        
+        cursor.execute('''
+            INSERT INTO signal_records (
+                symbol, timestamp, direction, score, price,
+                price_above_ema21_15m, price_above_ema21_1h,
+                price_below_ema21_15m, price_below_ema21_1h,
+                rsi_in_range, price_near_ema21, atr_amplified,
+                volume_amplified, ema_convergence
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            symbol,
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            direction,
+            score,
+            metrics['price'],
+            conditions['price_above_ema21_15m'],
+            conditions['price_above_ema21_1h'],
+            conditions['price_below_ema21_15m'],
+            conditions['price_below_ema21_1h'],
+            conditions['rsi_in_range'],
+            conditions['price_near_ema21'],
+            conditions['atr_amplified'],
+            conditions['volume_amplified'],
+            conditions['ema_convergence']
+        ))
+        
+        conn.commit()
+        conn.close()
+        print(f"[{symbol}] 信号记录已保存到数据库")
+    except Exception as e:
+        print(f"[{symbol}] 保存信号记录失败: {e}")
 
 # --- 数据获取与技术指标计算 ---
 def get_klines(symbol, interval, limit=50, max_retries=3):
@@ -294,6 +400,10 @@ def send_feishu_msg(symbol, metrics, direction, score, details):
 {conditions_text}"""
 
     print(f"[{symbol}] 发送提醒：【{direction}】分数: {score}")
+    
+    # 保存信号记录到数据库
+    save_signal_record(symbol, direction, score, metrics, details)
+    
     try:
         response = requests.post(FEISHU_WEBHOOK, json={"msg_type": "text", "content": {"text": body}}, timeout=10)
         response.raise_for_status()
@@ -305,6 +415,9 @@ def main():
     """主执行函数。"""
     print(f"开始检查... 当前时间: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"监控代币: {', '.join([token['symbol'] for token in TOKEN_CONFIG])}")
+    
+    # 初始化数据库
+    init_database()
     
     ALERT_STATUS = load_status()
     
