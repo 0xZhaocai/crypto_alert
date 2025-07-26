@@ -150,13 +150,13 @@ def save_signal_record(symbol, direction, score, metrics, details):
                 conditions['price_below_ema21_1h'] = 1
             elif "RSI在区间内" in detail:
                 conditions['rsi_in_range'] = 1
-            elif "价格贴近15mEMA21" in detail:
+            elif "贴近15mEMA21" in detail:
                 conditions['price_near_ema21'] = 1
             elif "ATR放大" in detail:
                 conditions['atr_amplified'] = 1
             elif "成交量放大" in detail:
                 conditions['volume_amplified'] = 1
-            elif "EMA9/21靠近" in detail:
+            elif "EMA靠近" in detail:
                 conditions['ema_convergence'] = 1
         
         cursor.execute('''
@@ -312,24 +312,25 @@ def evaluate_signals(metrics):
     if RSI_RANGE["min"] <= metrics["rsi_5m"] <= RSI_RANGE["max"]:
         long_score += 1; long_details.append(f"RSI在区间内({metrics['rsi_5m']:.2f}): +1")
     if metrics["price_ema_gap_ratio"] < PRICE_EMA_GAP_RATIO:
-        long_score += 1; long_details.append(f"价格贴近15mEMA21({metrics['price_ema_gap_ratio']:.3%}): +1")
+        long_score += 1; long_details.append(f"贴近15mEMA21({metrics['price_ema_gap_ratio']:.2%}): +1")
     if metrics["atr_ratio"] >= ATR_RATIO:
         long_score += 2; long_details.append(f"ATR放大({metrics['atr_ratio']:.2f}x): +2")
     if metrics["volume_ratio"] >= VOLUME_RATIO:
         long_score += 2; long_details.append(f"成交量放大({metrics['volume_ratio']:.2f}x): +2")
     
     # EMA靠近度评分（任一周期EMA9与EMA21靠近都给分）
-    ema_convergence_count = 0
+    ema_convergence_periods = []
     if metrics["ema_convergence_5m"] < EMA_CONVERGENCE_THRESHOLD:
-        ema_convergence_count += 1
+        ema_convergence_periods.append("5m")
     if metrics["ema_convergence_15m"] < EMA_CONVERGENCE_THRESHOLD:
-        ema_convergence_count += 1
+        ema_convergence_periods.append("15m")
     if metrics["ema_convergence_1h"] < EMA_CONVERGENCE_THRESHOLD:
-        ema_convergence_count += 1
+        ema_convergence_periods.append("1h")
     
-    if ema_convergence_count > 0:
+    if ema_convergence_periods:
         long_score += EMA_CONVERGENCE_SCORE
-        long_details.append(f"EMA9/21靠近: +{EMA_CONVERGENCE_SCORE}")
+        periods_str = "/".join(ema_convergence_periods)
+        long_details.append(f"EMA靠近({periods_str}): +{EMA_CONVERGENCE_SCORE}")
 
     # 做空信号评分
     if metrics["price"] < metrics["ema21_15m"]:
@@ -339,16 +340,17 @@ def evaluate_signals(metrics):
     if RSI_RANGE["min"] <= metrics["rsi_5m"] <= RSI_RANGE["max"]:
         short_score += 1; short_details.append(f"RSI在区间内({metrics['rsi_5m']:.2f}): +1")
     if metrics["price_ema_gap_ratio"] < PRICE_EMA_GAP_RATIO:
-        short_score += 1; short_details.append(f"价格贴近15mEMA21({metrics['price_ema_gap_ratio']:.3%}): +1")
+        short_score += 1; short_details.append(f"贴近15mEMA21({metrics['price_ema_gap_ratio']:.2%}): +1")
     if metrics["atr_ratio"] >= ATR_RATIO:
         short_score += 2; short_details.append(f"ATR放大({metrics['atr_ratio']:.2f}x): +2")
     if metrics["volume_ratio"] >= VOLUME_RATIO:
         short_score += 2; short_details.append(f"成交量放大({metrics['volume_ratio']:.2f}x): +2")
     
     # EMA靠近度评分（任一周期EMA9与EMA21靠近都给分）
-    if ema_convergence_count > 0:
+    if ema_convergence_periods:
         short_score += EMA_CONVERGENCE_SCORE
-        short_details.append(f"EMA9/21靠近: +{EMA_CONVERGENCE_SCORE}")
+        periods_str = "/".join(ema_convergence_periods)
+        short_details.append(f"EMA靠近({periods_str}): +{EMA_CONVERGENCE_SCORE}")
 
     return long_score, short_score, long_details, short_details
 

@@ -23,7 +23,7 @@ import sqlite3
 import argparse
 import os
 from datetime import datetime
-from tabulate import tabulate
+import tabulate
 
 # 数据库文件路径
 DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "signals.db")
@@ -94,7 +94,7 @@ def show_all_records(limit=None):
             ])
         
         print(f"\n📊 信号记录 (共 {len(records)} 条)")
-        print(tabulate(table_data, headers=headers, tablefmt='grid'))
+        print(tabulate.tabulate(table_data, headers=headers, tablefmt='grid'))
         
     except Exception as e:
         print(f"❌ 查询失败: {e}")
@@ -177,13 +177,13 @@ def show_detailed_records(records):
         if record['rsi_in_range']:
             conditions.append("RSI在区间内")
         if record['price_near_ema21']:
-            conditions.append("价格贴近15mEMA21")
+            conditions.append("贴近15mEMA21")
         if record['atr_amplified']:
             conditions.append("ATR放大")
         if record['volume_amplified']:
             conditions.append("成交量放大")
         if record['ema_convergence']:
-            conditions.append("EMA9/21靠近")
+            conditions.append("EMA靠近")
         
         print(f"满足条件: {', '.join(conditions)}")
 
@@ -255,10 +255,10 @@ def show_statistics():
             ("价格 < EMA21(15m)", condition_stats['price_below_ema21_15m']),
             ("价格 < EMA21(1h)", condition_stats['price_below_ema21_1h']),
             ("RSI在区间内", condition_stats['rsi_in_range']),
-            ("价格贴近15mEMA21", condition_stats['price_near_ema21']),
+            ("贴近15mEMA21", condition_stats['price_near_ema21']),
             ("ATR放大", condition_stats['atr_amplified']),
             ("成交量放大", condition_stats['volume_amplified']),
-            ("EMA9/21靠近", condition_stats['ema_convergence'])
+            ("EMA靠近", condition_stats['ema_convergence'])
         ]
         
         for condition, count in conditions:
