@@ -1,13 +1,13 @@
 {
   "BTCUSDT": {
-    "long": false,
+    "long": true,
     "short": false,
-    "last_long_score": 6,
+    "last_long_score": 8,
     "last_short_score": 7,
     "error_count": 0,
-    "signal_disappeared_time": null,
-    "last_price": 0,
-    "last_rsi": 0
+    "signal_disappeared_time": "2025-07-27T00:51:54.594730",
+    "last_price": 118088.57,
+    "last_rsi": 59.84144240988015
   },
   "ETHUSDT": {
     "long": false,
@@ -30,14 +30,14 @@
     "last_rsi": 0
   },
   "XRPUSDT": {
-    "long": false,
+    "long": true,
     "short": false,
-    "last_long_score": 6,
+    "last_long_score": 8,
     "last_short_score": 0,
     "error_count": 0,
-    "signal_disappeared_time": null,
-    "last_price": 0,
-    "last_rsi": 0
+    "signal_disappeared_time": "2025-07-27T00:51:57.658389",
+    "last_price": 3.1931,
+    "last_rsi": 57.05669481302779
   },
   "AVAXUSDT": {
     "long": false,
@@ -78,5 +78,25 @@
     "signal_disappeared_time": null,
     "last_price": 0,
     "last_rsi": 0
+  },
+  "AAVEUSDT": {
+    "long": false,
+    "short": false,
+    "last_long_score": 0,
+    "last_short_score": 0,
+    "error_count": 0,
+    "signal_disappeared_time": null,
+    "last_price": 0,
+    "last_rsi": 0
+  },
+  "LINKUSDT": {
+    "long": true,
+    "short": false,
+    "last_long_score": 8,
+    "last_short_score": 0,
+    "error_count": 0,
+    "signal_disappeared_time": "2025-07-27T00:51:59.284701",
+    "last_price": 18.39,
+    "last_rsi": 57.14285714285724
   }
 }
